@@ -19,8 +19,21 @@ class Main {
             circle.x = 100;
             circle.y = 100;
 
+
             this.main_canvas.Stage.addChild(circle);
-            this.main_canvas.Stage.update();
+
+            createjs.Ticker.addEventListener("tick", handleTick);
+            let self = this;
+            function handleTick(event: Event) {
+                self.main_canvas.Stage.update();
+            }
+
+
+            circle.addEventListener('click', (event: any) => {
+                console.log('yyy');
+                event.target.color = 'Green';
+                this.main_canvas.Stage.update();
+            });
         }
     }
 }
