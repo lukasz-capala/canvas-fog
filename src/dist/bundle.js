@@ -74,11 +74,17 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 var Main = /** @class */ (function () {
     function Main() {
         var _this = this;
-        this.main_canvas = new __WEBPACK_IMPORTED_MODULE_0__Canvas__["a" /* Canvas */]('fog-canvas');
         window.onload = function () {
+            _this.main_canvas = new __WEBPACK_IMPORTED_MODULE_0__Canvas__["a" /* Canvas */]('fog-canvas');
             console.log('worlds');
             console.log(_this.main_canvas.Stage);
             console.log('sample');
+            var circle = new createjs.Shape();
+            circle.graphics.beginFill("DeepSkyBlue").drawCircle(0, 0, 50);
+            circle.x = 100;
+            circle.y = 100;
+            _this.main_canvas.Stage.addChild(circle);
+            _this.main_canvas.Stage.update();
         };
     }
     return Main;
