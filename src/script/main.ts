@@ -1,41 +1,47 @@
-import { Canvas } from "./Canvas";
-
 declare var createjs: any;
+declare var require: any;
+
+require('../scss/main.scss');
+
+import { Canvas } from "./Canvas";
+import { Particle } from "./Particle";
+import { Animator } from "./Animator";
 
 class Main {
     main_canvas: Canvas;
+    particles: Array<Particle>;
+    particle_animator: Animator;
 
-    constructor() {
-
-
+    constructor(particles_count : Number) {
         window.onload = () => {
             this.main_canvas = new Canvas('fog-canvas');
-            console.log('worlds');
-            console.log(this.main_canvas.Stage);
-            console.log('sample');
+            this.particles = new Array<Particle>();
+            this.particle_animator = new Animator();
 
-            let circle : any = new createjs.Shape();
-            circle.graphics.beginFill("DeepSkyBlue").drawCircle(0, 0, 50);
-            circle.x = 100;
-            circle.y = 100;
+            
 
+            for (let i = 0; i < particles_count; i++) {
+                let particle = new Particle(50, 50*(i+1));
 
-            this.main_canvas.Stage.addChild(circle);
+                this.particles.push(particle);
+                this.main_canvas.Stage.addChild(particle.Particle);
+                let particle_tween = this.particle_animator.TweenTo(particle.Particle, window.innerWidth, particle.Particle.y);
 
-            createjs.Ticker.addEventListener("tick", handleTick);
-            let self = this;
-            function handleTick(event: Event) {
-                self.main_canvas.Stage.update();
+                particle.Particle.addEventListener('click', () => {
+                    console.log('over');
+                    // this.particle_animator.TweenTo(particle.Particle, window.innerWidth, particle.Particle.y+50);
+                    particle_tween.paused = !particle_tween.paused;
+                });
             }
 
-
-            circle.addEventListener('click', (event: any) => {
-                console.log('yyy');
-                event.target.color = 'Green';
-                this.main_canvas.Stage.update();
-            });
+            createjs.Ticker.addEventListener('tick', (event: Event) => { this.Tick(event); });
+            
         }
+    }
+
+    private Tick(event : Event) : void {
+        this.main_canvas.Stage.update();
     }
 }
 
-var view: Main = new Main();
+var view: Main = new Main(10);
