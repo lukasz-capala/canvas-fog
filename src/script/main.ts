@@ -30,7 +30,9 @@ class Main {
                 particle.Particle.addEventListener('click', () => {
                     console.log('over');
                     // this.particle_animator.TweenTo(particle.Particle, window.innerWidth, particle.Particle.y+50);
-                    particle_tween.paused = !particle_tween.paused;
+                    particle_tween.paused = true;
+                    particle_tween = this.particle_animator.TweenTo(particle.Particle, window.innerWidth, particle.Particle.y - 75, 30000-particle_tween.rawPosition);
+
                 });
             }
 

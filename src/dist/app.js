@@ -91,7 +91,8 @@ var Main = /** @class */ (function () {
                 particle.Particle.addEventListener('click', function () {
                     console.log('over');
                     // this.particle_animator.TweenTo(particle.Particle, window.innerWidth, particle.Particle.y+50);
-                    particle_tween.paused = !particle_tween.paused;
+                    particle_tween.paused = true;
+                    particle_tween = _this.particle_animator.TweenTo(particle.Particle, window.innerWidth, particle.Particle.y - 75, 30000 - particle_tween.rawPosition);
                 });
             };
             for (var i = 0; i < particles_count; i++) {
@@ -798,7 +799,7 @@ var Animator = /** @class */ (function () {
     }
     Animator.prototype.TweenTo = function (object, _x, _y, time) {
         if (time === void 0) { time = 30000; }
-        var tween = createjs.Tween.get(object).to({ x: _x, y: _y }, time, createjs.Ease.linear);
+        var tween = new createjs.Tween.get(object).to({ x: _x, y: _y }, time, createjs.Ease.linear);
         return tween;
     };
     return Animator;
