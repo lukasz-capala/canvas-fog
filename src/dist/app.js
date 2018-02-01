@@ -83,8 +83,12 @@ var Main = /** @class */ (function () {
             _this.main_canvas = new __WEBPACK_IMPORTED_MODULE_0__Canvas__["a" /* Canvas */]('fog-canvas');
             _this.particles = new Array();
             _this.particle_animator = new __WEBPACK_IMPORTED_MODULE_2__Animator__["a" /* Animator */]();
-            _this.test_y = 0;
-            _this.main_canvas.Stage.enableMouseOver();
+            _this.force_x = 0;
+            _this.force_x_sign = 1;
+            _this.force_y = 0;
+            _this.force_y_sign = 1;
+            _this.gravity_y = 0;
+            _this.main_canvas.Stage.enableMouseOver(100);
             var _loop_1 = function (i) {
                 var particle = new __WEBPACK_IMPORTED_MODULE_1__Particle__["a" /* Particle */](50, 150 * (i + 1));
                 _this.particles.push(particle);
@@ -97,11 +101,10 @@ var Main = /** @class */ (function () {
                 //         particle_tween = this.particle_animator.TweenTo(particle.Particle, window.innerWidth, particle.Particle.y - 475, particle_tween.duration-particle_tween.rawPosition);
                 //     });
                 particle.Particle.addEventListener('mouseout', function (event) {
-                    _this.test_y = event.stageY;
-                    _this.temp_y = particle.Particle.y;
-                    console.log(event);
-                    console.log(_this.test_y);
-                    console.log('test');
+                    _this.force_x = (event.stageX - particle.Particle.x) / 5;
+                    _this.force_x_sign = (_this.force_x > 0 ? 1 : -1);
+                    _this.force_y = (event.stageY - particle.Particle.y) / 5;
+                    _this.force_y_sign = (_this.force_y > 0 ? 1 : -1);
                 });
             };
             for (var i = 0; i < particles_count; i++) {
@@ -114,11 +117,32 @@ var Main = /** @class */ (function () {
     Main.prototype.Tick = function (event) {
         var _this = this;
         Array.prototype.forEach.call(this.particles, function (particle) {
-            particle.Particle.x += 1;
-            if (_this.temp_y > _this.test_y && particle.Particle.y >= _this.test_y)
-                particle.Particle.y -= 12;
-            else if (_this.temp_y < _this.test_y && particle.Particle.y <= _this.test_y)
-                particle.Particle.y += 12;
+            particle.Particle.x += 1 + _this.force_x;
+            if (_this.force_x_sign === 1 && _this.force_x > 0
+                || _this.force_x_sign === -1 && _this.force_x < 0)
+                _this.force_x -= _this.force_x_sign;
+            else
+                _this.force_x = 0;
+            particle.Particle.y += Math.sin(particle.Particle.x / 10) * 1.5 + _this.force_y * Math.abs(Math.sin(particle.Particle.x)) + (_this.gravity_y / 10) * Math.abs(Math.sin(particle.Particle.x));
+            if (_this.force_y_sign === 1 && _this.force_y > 0
+                || _this.force_y_sign === -1 && _this.force_y < 0)
+                _this.force_y -= _this.force_y_sign;
+            else
+                _this.force_y = 0;
+            if (particle.Particle.y > particle.StartingY)
+                _this.gravity_y = -10;
+            else if (particle.Particle.y < particle.StartingY)
+                _this.gravity_y = 10;
+            else
+                _this.gravity_y = 0;
+            //if (this.temp_x > this.test_x && particle.Particle.x >= this.test_x)
+            //    particle.Particle.x -= 15 / Math.log(particle.Particle.x);
+            //else if (this.temp_x < this.test_x && particle.Particle.x <= this.test_x)
+            //    particle.Particle.x += 15 / Math.log(particle.Particle.x);
+            //if(this.temp_y > this.test_y && particle.Particle.y >= this.test_y)
+            //    particle.Particle.y -= 15 / Math.log(particle.Particle.y);
+            //else if (this.temp_y < this.test_y && particle.Particle.y <= this.test_y)
+            //    particle.Particle.y += 15 / Math.log(particle.Particle.y);
             if (particle.Particle.x > window.innerWidth) {
                 particle.Particle.x = -2 * particle.Particle.graphics.command.radius;
             }
@@ -127,7 +151,7 @@ var Main = /** @class */ (function () {
     };
     return Main;
 }());
-var view = new Main(1);
+var view = new Main(2);
 
 
 /***/ }),
@@ -796,10 +820,18 @@ var Particle = /** @class */ (function () {
         this.particle.graphics.beginFill('lightblue').drawCircle(0, 0, 20);
         this.particle.x = x;
         this.particle.y = y;
+        this.starting_y = y;
     }
     Object.defineProperty(Particle.prototype, "Particle", {
         get: function () {
             return this.particle;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Particle.prototype, "StartingY", {
+        get: function () {
+            return this.starting_y;
         },
         enumerable: true,
         configurable: true

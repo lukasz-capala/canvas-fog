@@ -12,17 +12,26 @@ class Main {
     particles: Array<Particle>;
     particle_animator: Animator;
 
-    test_y : number;
-    temp_y : number;
+    force_x: number;
+    force_x_sign: number;
+    force_y: number;
+    force_y_sign: number;
+    gravity_y: number;
 
     constructor(particles_count : Number) {
         window.onload = () => {
             this.main_canvas = new Canvas('fog-canvas');
             this.particles = new Array<Particle>();
             this.particle_animator = new Animator();
-            this.test_y = 0;
 
-            this.main_canvas.Stage.enableMouseOver();
+            this.force_x = 0;
+            this.force_x_sign = 1;
+            this.force_y = 0;
+            this.force_y_sign = 1;
+
+            this.gravity_y = 0;
+
+            this.main_canvas.Stage.enableMouseOver(100);
 
             for (let i = 0; i < particles_count; i++) {
                 let particle = new Particle(50, 150*(i+1));
@@ -39,13 +48,13 @@ class Main {
 
             //     });
 
-                particle.Particle.addEventListener('mouseout', (event: any) => {
-                    this.test_y = event.stageY;
-                    this.temp_y = particle.Particle.y;
-                    console.log(event);
-                    console.log(this.test_y);
 
-                    console.log('test');
+                particle.Particle.addEventListener('mouseout', (event: any) => {
+                    this.force_x = (event.stageX - particle.Particle.x) / 5;
+                    this.force_x_sign = (this.force_x > 0 ? 1 : -1);
+                    this.force_y = (event.stageY - particle.Particle.y) / 5;
+                    this.force_y_sign = (this.force_y > 0 ? 1 : -1);
+
                 });
              }
              
@@ -56,13 +65,40 @@ class Main {
     }
 
     private Tick(event : Event) : void {
-        Array.prototype.forEach.call(this.particles, (particle : Particle) => {
-            particle.Particle.x += 1;
+        Array.prototype.forEach.call(this.particles, (particle: Particle) => {
+            particle.Particle.x += 1 + this.force_x;
 
-            if(this.temp_y > this.test_y && particle.Particle.y >= this.test_y)
-                particle.Particle.y -= 12;
-            else if(this.temp_y < this.test_y && particle.Particle.y <= this.test_y)
-                particle.Particle.y += 12;
+            if (this.force_x_sign === 1 && this.force_x > 0
+                || this.force_x_sign === -1 && this.force_x < 0)
+                this.force_x -= this.force_x_sign;
+            else
+                this.force_x = 0;
+
+            particle.Particle.y += Math.sin(particle.Particle.x / 10) * 1.5 + this.force_y * Math.abs(Math.sin(particle.Particle.x)) + (this.gravity_y / 10) * Math.abs(Math.sin(particle.Particle.x));
+
+            if (this.force_y_sign === 1 && this.force_y > 0
+                || this.force_y_sign === -1 && this.force_y < 0)
+                this.force_y -= this.force_y_sign;
+            else
+                this.force_y = 0;
+
+            if (particle.Particle.y > particle.StartingY)
+                this.gravity_y = -10;
+            else if (particle.Particle.y < particle.StartingY)
+                this.gravity_y = 10;
+            else
+                this.gravity_y = 0; 
+                
+            
+            //if (this.temp_x > this.test_x && particle.Particle.x >= this.test_x)
+            //    particle.Particle.x -= 15 / Math.log(particle.Particle.x);
+            //else if (this.temp_x < this.test_x && particle.Particle.x <= this.test_x)
+            //    particle.Particle.x += 15 / Math.log(particle.Particle.x);
+
+            //if(this.temp_y > this.test_y && particle.Particle.y >= this.test_y)
+            //    particle.Particle.y -= 15 / Math.log(particle.Particle.y);
+            //else if (this.temp_y < this.test_y && particle.Particle.y <= this.test_y)
+            //    particle.Particle.y += 15 / Math.log(particle.Particle.y);
 
             if(particle.Particle.x > window.innerWidth) {
                 particle.Particle.x = -2 * particle.Particle.graphics.command.radius;
@@ -75,4 +111,4 @@ class Main {
     }
 }
 
-var view: Main = new Main(1);
+var view: Main = new Main(2);
