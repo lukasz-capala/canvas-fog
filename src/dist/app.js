@@ -71,7 +71,7 @@
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__Canvas__ = __webpack_require__(6);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__Particle__ = __webpack_require__(7);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__Animator__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__Wind__ = __webpack_require__(8);
 __webpack_require__(1);
 
 
@@ -82,76 +82,22 @@ var Main = /** @class */ (function () {
         window.onload = function () {
             _this.main_canvas = new __WEBPACK_IMPORTED_MODULE_0__Canvas__["a" /* Canvas */]('fog-canvas');
             _this.particles = new Array();
-            _this.particle_animator = new __WEBPACK_IMPORTED_MODULE_2__Animator__["a" /* Animator */]();
-            _this.force_x = 0;
-            _this.force_x_sign = 1;
-            _this.force_y = 0;
-            _this.force_y_sign = 1;
-            _this.gravity_y = 0;
             _this.main_canvas.Stage.enableMouseOver(100);
-            var _loop_1 = function (i) {
-                var particle = new __WEBPACK_IMPORTED_MODULE_1__Particle__["a" /* Particle */](50, 150 * (i + 1));
+            for (var i = 0, j = 1; i < Math.ceil(particles_count / 10); j++) {
+                var particle = new __WEBPACK_IMPORTED_MODULE_1__Particle__["a" /* Particle */](50 * j, 10 * (i + 1), 10);
                 _this.particles.push(particle);
                 _this.main_canvas.Stage.addChild(particle.Particle);
-                //     let particle_tween = this.particle_animator.TweenTo(particle.Particle, window.innerWidth, particle.Particle.y);
-                //     particle.Particle.addEventListener('click', () => {
-                //         console.log('over');
-                //         // this.particle_animator.TweenTo(particle.Particle, window.innerWidth, particle.Particle.y+50);
-                //         particle_tween.paused = true;
-                //         particle_tween = this.particle_animator.TweenTo(particle.Particle, window.innerWidth, particle.Particle.y - 475, particle_tween.duration-particle_tween.rawPosition);
-                //     });
-                particle.Particle.addEventListener('mouseout', function (event) {
-                    _this.force_x = (event.stageX - particle.Particle.x) / 5;
-                    _this.force_x_sign = (_this.force_x > 0 ? 1 : -1);
-                    _this.force_y = (event.stageY - particle.Particle.y) / 5;
-                    _this.force_y_sign = (_this.force_y > 0 ? 1 : -1);
-                });
-            };
-            for (var i = 0; i < particles_count; i++) {
-                _loop_1(i);
+                if (j % 10 === 0) {
+                    j = 0;
+                    i++;
+                }
             }
-            createjs.Ticker.framerate = 60;
-            createjs.Ticker.addEventListener('tick', function (event) { _this.Tick(event); });
+            _this.wind = new __WEBPACK_IMPORTED_MODULE_2__Wind__["a" /* Wind */](_this.particles, _this.main_canvas);
         };
     }
-    Main.prototype.Tick = function (event) {
-        var _this = this;
-        Array.prototype.forEach.call(this.particles, function (particle) {
-            particle.Particle.x += 1 + _this.force_x;
-            if (_this.force_x_sign === 1 && _this.force_x > 0
-                || _this.force_x_sign === -1 && _this.force_x < 0)
-                _this.force_x -= _this.force_x_sign;
-            else
-                _this.force_x = 0;
-            particle.Particle.y += Math.sin(particle.Particle.x / 10) * 1.5 + _this.force_y * Math.abs(Math.sin(particle.Particle.x)) + (_this.gravity_y / 10) * Math.abs(Math.sin(particle.Particle.x));
-            if (_this.force_y_sign === 1 && _this.force_y > 0
-                || _this.force_y_sign === -1 && _this.force_y < 0)
-                _this.force_y -= _this.force_y_sign;
-            else
-                _this.force_y = 0;
-            if (particle.Particle.y > particle.StartingY)
-                _this.gravity_y = -10;
-            else if (particle.Particle.y < particle.StartingY)
-                _this.gravity_y = 10;
-            else
-                _this.gravity_y = 0;
-            //if (this.temp_x > this.test_x && particle.Particle.x >= this.test_x)
-            //    particle.Particle.x -= 15 / Math.log(particle.Particle.x);
-            //else if (this.temp_x < this.test_x && particle.Particle.x <= this.test_x)
-            //    particle.Particle.x += 15 / Math.log(particle.Particle.x);
-            //if(this.temp_y > this.test_y && particle.Particle.y >= this.test_y)
-            //    particle.Particle.y -= 15 / Math.log(particle.Particle.y);
-            //else if (this.temp_y < this.test_y && particle.Particle.y <= this.test_y)
-            //    particle.Particle.y += 15 / Math.log(particle.Particle.y);
-            if (particle.Particle.x > window.innerWidth) {
-                particle.Particle.x = -2 * particle.Particle.graphics.command.radius;
-            }
-        });
-        this.main_canvas.Stage.update();
-    };
     return Main;
 }());
-var view = new Main(2);
+var view = new Main(100);
 
 
 /***/ }),
@@ -790,6 +736,8 @@ var Canvas = /** @class */ (function () {
         this.canvas = document.getElementById(id);
         window.addEventListener('resize', function (event) { _this.Resize(event); });
         this.Resize();
+        createjs.Ticker.framerate = 60;
+        createjs.Ticker.addEventListener('tick', function (event) { _this.Tick(event); });
     }
     Object.defineProperty(Canvas.prototype, "Stage", {
         get: function () {
@@ -798,9 +746,19 @@ var Canvas = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
+    Object.defineProperty(Canvas.prototype, "CanvasObject", {
+        get: function () {
+            return this.canvas;
+        },
+        enumerable: true,
+        configurable: true
+    });
     Canvas.prototype.Resize = function (event) {
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
+        this.stage.update();
+    };
+    Canvas.prototype.Tick = function (event) {
         this.stage.update();
     };
     return Canvas;
@@ -815,12 +773,16 @@ var Canvas = /** @class */ (function () {
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Particle; });
 var Particle = /** @class */ (function () {
-    function Particle(x, y) {
+    function Particle(x, y, radius) {
+        var _this = this;
         this.particle = new createjs.Shape();
-        this.particle.graphics.beginFill('lightblue').drawCircle(0, 0, 20);
-        this.particle.x = x;
-        this.particle.y = y;
+        this.particle.graphics.beginFill('lightblue').drawCircle(x, y, radius);
+        this.particle.cache(x - radius, y - radius, 2 * radius, 2 * radius);
         this.starting_y = y;
+        this.force_x = { sign: 1, amount: 0 };
+        this.force_y = { sign: 1, amount: 0 };
+        this.gravity_y = 0;
+        createjs.Ticker.addEventListener('tick', function (event) { _this.WatchPosition(event); });
     }
     Object.defineProperty(Particle.prototype, "Particle", {
         get: function () {
@@ -836,6 +798,78 @@ var Particle = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
+    Object.defineProperty(Particle.prototype, "ForceXAmount", {
+        get: function () {
+            return this.force_x.amount;
+        },
+        set: function (amount) {
+            this.force_x.amount = amount;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Particle.prototype, "ForceXSign", {
+        get: function () {
+            return this.force_x.sign;
+        },
+        set: function (sign) {
+            this.force_x.sign = sign;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Particle.prototype, "ForceYAmount", {
+        get: function () {
+            return this.force_y.amount;
+        },
+        set: function (amount) {
+            this.force_y.amount = amount;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Particle.prototype, "ForceYSign", {
+        get: function () {
+            return this.force_y.sign;
+        },
+        set: function (sign) {
+            this.force_y.sign = sign;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Particle.prototype, "GravityY", {
+        set: function (gravity) {
+            this.gravity_y = gravity;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Particle.prototype.WatchPosition = function (event) {
+        this.particle.x += 1 + this.force_x.amount * this.force_x.sign;
+        if (this.force_x.sign === 1 && this.force_x.amount > 0
+            || this.force_x.sign === -1 && this.force_x.amount < 0)
+            this.force_x.amount--;
+        else
+            this.force_x.amount = 0;
+        this.particle.y += Math.sin(this.particle.x / 10) * 1.5
+            + this.force_y.amount * this.force_y.sign * Math.abs(Math.sin(this.particle.x))
+            + (this.gravity_y / 10) * Math.abs(Math.sin(this.particle.x));
+        if (this.force_y.sign === 1 && this.force_y.amount > 0
+            || this.force_y.sign === -1 && this.force_y.amount < 0)
+            this.force_y.amount--;
+        else
+            this.force_y.amount = 0;
+        if (this.particle.y > this.starting_y)
+            this.gravity_y = -10;
+        else if (this.particle.y < this.starting_y)
+            this.gravity_y = 10;
+        else
+            this.gravity_y = 0;
+        if (this.particle.x > window.innerWidth) {
+            this.particle.x = -2 * this.particle.graphics.command.radius;
+        }
+    };
     return Particle;
 }());
 
@@ -846,16 +880,34 @@ var Particle = /** @class */ (function () {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Animator; });
-var Animator = /** @class */ (function () {
-    function Animator() {
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Wind; });
+var Wind = /** @class */ (function () {
+    function Wind(particles, canvas) {
+        var _this = this;
+        this.particles = particles;
+        this.canvas = canvas;
+        this.old_x = 0;
+        this.old_y = 0;
+        this.canvas.CanvasObject.addEventListener('mousemove', function (event) {
+            var current_x = event.clientX;
+            var current_y = event.clientY;
+            Array.prototype.forEach.call(_this.particles, function (particle) {
+                if (current_x >= particle.Particle.x - 10
+                    && current_x <= particle.Particle.x + particle.Particle.graphics.command.radius + 10
+                    && current_y >= particle.Particle.y - 10
+                    && current_y <= particle.Particle.y + particle.Particle.graphics.command.radius + 10) {
+                    particle.ForceXAmount = 10;
+                    particle.ForceXSign = ((current_x - particle.Particle.x) > 0 ? 1 : -1);
+                    particle.ForceYAmount = 10;
+                    particle.ForceYSign = ((current_y - particle.Particle.y) > 0 ? 1 : -1);
+                    console.log(particle.ForceXSign);
+                }
+            });
+            _this.old_x = event.clientX;
+            _this.old_y = event.clientY;
+        });
     }
-    Animator.prototype.TweenTo = function (object, _x, _y, time) {
-        if (time === void 0) { time = 30000; }
-        var tween = new createjs.Tween.get(object).to({ x: _x, y: _y }, time, createjs.Ease.linear);
-        return tween;
-    };
-    return Animator;
+    return Wind;
 }());
 
 
